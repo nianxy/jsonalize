@@ -62,6 +62,9 @@ class JSONBool(int, JSONTypeBase):
     def false(self):
         return self == 0
 
+    def equals(self, other):
+        return self == other
+
 
 class JSONString(str, JSONTypeBase):
     pass
