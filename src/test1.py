@@ -20,6 +20,13 @@ class MyClass(JSONObject):
         self.ov = XXObj()
         self.ov.iv = 10
         self.ov.sv = 'where are you'
+        self.lsobjv = JSONList()
+        self.lsobjv.append(XXObj())
+        self.lsobjv.append(XXObj())
+        self.mapv = JSONDict()
+        self.mapv['a'] = 1
+        self.mapv['b'] = 2
+        self.mapv['c'] = XXObj()
 
 
 my = MyClass()

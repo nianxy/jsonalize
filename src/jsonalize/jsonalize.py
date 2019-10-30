@@ -67,17 +67,43 @@ class JSONString(str, JSONTypeBase):
     pass
 
 
-class JSONList(list, JSONTypeBase):
+class _JSONIterable(JSONTypeBase):
+    def _to_map_value(self):
+        return _JSONIterable._sub_iter_to_map_value(self)
+
+    @staticmethod
+    def _sub_iter_to_map_value(sub_iter):
+        new_list = []
+        for item in sub_iter:
+            if isinstance(item, JSONTypeBase):
+                new_list.append(item._to_map_value())
+            else:
+                new_list.append(item)
+        return new_list
+
+
+class JSONList(list, _JSONIterable):
     pass
+
+
+class JSONSet(set, _JSONIterable):
+    def _to_map_value(self):
+        return list(_JSONIterable._to_map_value(self))
 
 
 class JSONDict(dict, JSONTypeBase):
-    pass
-
-
-class JSONSet(set, JSONTypeBase):
     def _to_map_value(self):
-        return list(self)
+        return JSONDict._sub_dict_to_map_value(self)
+
+    @staticmethod
+    def _sub_dict_to_map_value(sub_dict):
+        new_dict = {}
+        for k, v in sub_dict.iteritems():
+            if isinstance(v, JSONTypeBase):
+                new_dict[k] = v._to_map_value()
+            else:
+                new_dict[k] = v
+        return new_dict
 
 
 class _InnerDict(dict):
