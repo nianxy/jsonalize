@@ -52,7 +52,7 @@ This example should output the following message:
 # List of supported JSON types
 
 - JSONInt
-- JSONLong
+- JSONLong (Only in Python 2)
 - JSONFloat
 - JSONComplex
 - JSONBool
