@@ -13,7 +13,6 @@ class MyClass(JSONObject):
         JSONObject.__init__(self)
         self.bv = JSONBool(True)
         self.iv = JSONInt(10)
-        self.lv = JSONLong(10)
         self.sv = JSONString('hello')
         self.lsv = JSONList()
         self.setv = JSONSet()
@@ -52,10 +51,10 @@ print(js)
 obj = JSONObject.from_json(MyClass, js)
 print(obj.to_json())
 
-print obj.bv
-print obj.bv is True
-print obj.bv == True
-print obj.bv.true(), obj.bv.true() is True
+print(obj.bv)
+print(obj.bv is True)
+print(obj.bv == True)
+print(obj.bv.true(), obj.bv.true() is True)
 
 
 my = MyData()

@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="jsonalize-stanley",
+    name="jsonalize",
     version="0.0.1",
     author="Stanley Nian",
     author_email="stanley.nian@yandex.com",
