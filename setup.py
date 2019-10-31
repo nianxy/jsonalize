@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="jsonalize",
-    version="0.0.1",
+    version="0.0.2",
     author="Stanley Nian",
     author_email="stanley.nian@yandex.com",
     description="A JSON data binding library for Python",
