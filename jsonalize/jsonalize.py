@@ -17,7 +17,10 @@ class InvalidJSONClassError(Exception):
         return 'Invalid JSON object class'
 
 
-class JSONTypeBase(object):
+class JSONTypeBase:
+    def __init__(self, *args, **kwargs):
+        pass
+
     def _to_map_value(self):
         return self
 
@@ -25,25 +28,41 @@ class JSONTypeBase(object):
         return value_dict
 
 
-class JSONInt(JSONTypeBase, int):
+class JSONInt(int, JSONTypeBase):
     def __new__(cls, *args, **kwargs):
         return int.__new__(JSONInt, *args, **kwargs)
 
+    def __init__(self, *args, **kwargs):
+        int.__init__(self)
+        JSONTypeBase.__init__(self)
+
 
 if _IS_PYTHON_2:
-    class JSONLong(JSONTypeBase, long):
+    class JSONLong(long, JSONTypeBase):
         def __new__(cls, *args, **kwargs):
             return long.__new__(JSONLong, *args, **kwargs)
 
+        def __init__(self, *args, **kwargs):
+            long.__init__(self)
+            JSONTypeBase.__init__(self)
 
-class JSONFloat(JSONTypeBase, float):
+
+class JSONFloat(float, JSONTypeBase):
     def __new__(cls, *args, **kwargs):
         return float.__new__(JSONFloat, *args, **kwargs)
 
+    def __init__(self, *args, **kwargs):
+        float.__init__(self)
+        JSONTypeBase.__init__(self)
 
-class JSONComplex(JSONTypeBase, complex):
+
+class JSONComplex(complex, JSONTypeBase):
     def __new__(cls, *args, **kwargs):
         return complex.__new__(JSONComplex, *args, **kwargs)
+
+    def __init__(self, *args, **kwargs):
+        complex.__init__(self)
+        JSONTypeBase.__init__(self)
 
     def _to_map_value(self):
         return {'r': self.real, 'i': self.imag}
@@ -52,7 +71,7 @@ class JSONComplex(JSONTypeBase, complex):
         return complex(value_dict['r'], value_dict['i'])
 
 
-class JSONBool(JSONTypeBase, int):
+class JSONBool(int, JSONTypeBase):
     """
     注意，不要将JSONBool实例通过 is 关键字和 True 比较，这样的结果永远是 False。例：
     jbool = JSONBool(True)
@@ -62,8 +81,16 @@ class JSONBool(JSONTypeBase, int):
     print(jbool.true() is True) # True
     """
     def __new__(cls, *args, **kwargs):
-        b = bool.__new__(bool, *args, **kwargs)
+        #b = bool.__new__(bool, *args, **kwargs)
+        if len(args) == 0:
+            b = 0
+        else:
+            b = 1 if args[0] >= 1 else 0
         return int.__new__(JSONBool, b)
+
+    def __init__(self, *args, **kwargs):
+        int.__init__(self)
+        JSONTypeBase.__init__(self)
 
     def __str__(self):
         return ['False', 'True'][self]
@@ -81,8 +108,10 @@ class JSONBool(JSONTypeBase, int):
         return self == other
 
 
-class JSONString(JSONTypeBase, str):
-    pass
+class JSONString(str, JSONTypeBase):
+    def __init__(self, *args, **kwargs):
+        str.__init__(self)
+        JSONTypeBase.__init__(self)
 
 
 class _JSONIterable(JSONTypeBase):
@@ -100,16 +129,26 @@ class _JSONIterable(JSONTypeBase):
         return new_list
 
 
-class JSONList(_JSONIterable, list):
-    pass
+class JSONList(list, _JSONIterable):
+    def __init__(self, *args, **kwargs):
+        list.__init__(self, *args, **kwargs)
+        JSONTypeBase.__init__(self)
 
 
-class JSONSet(_JSONIterable, set):
+class JSONSet(set, _JSONIterable):
+    def __init__(self, *args, **kwargs):
+        set.__init__(self, *args, **kwargs)
+        JSONTypeBase.__init__(self, *args, **kwargs)
+
     def _to_map_value(self):
         return list(_JSONIterable._to_map_value(self))
 
 
-class JSONDict(JSONTypeBase, dict):
+class JSONDict(dict, JSONTypeBase):
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        JSONTypeBase.__init__(self, *args, **kwargs)
+
     def _to_map_value(self):
         return JSONDict._sub_dict_to_map_value(self)
 

@@ -3,6 +3,7 @@ python_bin="${python_bin:=python}"
 echo "with python: [$python_bin]"
 
 # package
+"$python_bin" setup.py clean --all
 "$python_bin" setup.py sdist bdist_wheel
 if [ $? -ne 0 ] ; then
 	echo "Error: package failed!"
