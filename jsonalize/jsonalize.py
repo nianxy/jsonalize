@@ -22,7 +22,12 @@ class JSONObjectNotInitError(Exception):
         return 'JSONObject.__init__() should be invoked!'
 
 
-class JSONTypeBase:
+class _TypeValueNone:
+    def __init__(self, tp):
+        self.tp = tp
+
+
+class _JSONTypeBase:
     def __init__(self, *args, **kwargs):
         pass
 
@@ -33,41 +38,41 @@ class JSONTypeBase:
         return value_dict
 
 
-class JSONInt(int, JSONTypeBase):
+class JSONInt(int, _JSONTypeBase):
     def __new__(cls, *args, **kwargs):
         return int.__new__(JSONInt, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         int.__init__(self)
-        JSONTypeBase.__init__(self)
+        _JSONTypeBase.__init__(self)
 
 
 if _IS_PYTHON_2:
-    class JSONLong(long, JSONTypeBase):
+    class JSONLong(long, _JSONTypeBase):
         def __new__(cls, *args, **kwargs):
             return long.__new__(JSONLong, *args, **kwargs)
 
         def __init__(self, *args, **kwargs):
             long.__init__(self)
-            JSONTypeBase.__init__(self)
+            _JSONTypeBase.__init__(self)
 
 
-class JSONFloat(float, JSONTypeBase):
+class JSONFloat(float, _JSONTypeBase):
     def __new__(cls, *args, **kwargs):
         return float.__new__(JSONFloat, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         float.__init__(self)
-        JSONTypeBase.__init__(self)
+        _JSONTypeBase.__init__(self)
 
 
-class JSONComplex(complex, JSONTypeBase):
+class JSONComplex(complex, _JSONTypeBase):
     def __new__(cls, *args, **kwargs):
         return complex.__new__(JSONComplex, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         complex.__init__(self)
-        JSONTypeBase.__init__(self)
+        _JSONTypeBase.__init__(self)
 
     def _to_map_value(self):
         return {'r': self.real, 'i': self.imag}
@@ -76,7 +81,7 @@ class JSONComplex(complex, JSONTypeBase):
         return complex(value_dict['r'], value_dict['i'])
 
 
-class JSONBool(int, JSONTypeBase):
+class JSONBool(int, _JSONTypeBase):
     """
     注意，不要将JSONBool实例通过 is 关键字和 True 比较，这样的结果永远是 False。例：
     jbool = JSONBool(True)
@@ -95,7 +100,7 @@ class JSONBool(int, JSONTypeBase):
 
     def __init__(self, *args, **kwargs):
         int.__init__(self)
-        JSONTypeBase.__init__(self)
+        _JSONTypeBase.__init__(self)
 
     def __str__(self):
         return ['False', 'True'][self]
@@ -113,13 +118,13 @@ class JSONBool(int, JSONTypeBase):
         return self == other
 
 
-class JSONString(str, JSONTypeBase):
+class JSONString(str, _JSONTypeBase):
     def __init__(self, *args, **kwargs):
         str.__init__(self)
-        JSONTypeBase.__init__(self)
+        _JSONTypeBase.__init__(self)
 
 
-class _JSONIterable(JSONTypeBase):
+class _JSONIterable(_JSONTypeBase):
     def _to_map_value(self):
         return _JSONIterable._sub_iter_to_map_value(self)
 
@@ -127,7 +132,7 @@ class _JSONIterable(JSONTypeBase):
     def _sub_iter_to_map_value(sub_iter):
         new_list = []
         for item in sub_iter:
-            if isinstance(item, JSONTypeBase):
+            if isinstance(item, _JSONTypeBase):
                 new_list.append(item._to_map_value())
             else:
                 new_list.append(item)
@@ -137,22 +142,22 @@ class _JSONIterable(JSONTypeBase):
 class JSONList(list, _JSONIterable):
     def __init__(self, *args, **kwargs):
         list.__init__(self, *args, **kwargs)
-        JSONTypeBase.__init__(self)
+        _JSONTypeBase.__init__(self)
 
 
 class JSONSet(set, _JSONIterable):
     def __init__(self, *args, **kwargs):
         set.__init__(self, *args, **kwargs)
-        JSONTypeBase.__init__(self, *args, **kwargs)
+        _JSONTypeBase.__init__(self, *args, **kwargs)
 
     def _to_map_value(self):
         return list(_JSONIterable._to_map_value(self))
 
 
-class JSONDict(dict, JSONTypeBase):
+class JSONDict(dict, _JSONTypeBase):
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
-        JSONTypeBase.__init__(self, *args, **kwargs)
+        _JSONTypeBase.__init__(self, *args, **kwargs)
 
     def _to_map_value(self):
         return JSONDict._sub_dict_to_map_value(self)
@@ -161,7 +166,7 @@ class JSONDict(dict, JSONTypeBase):
     def _sub_dict_to_map_value(sub_dict):
         new_dict = {}
         for k, v in _iter_dict(sub_dict):
-            if isinstance(v, JSONTypeBase):
+            if isinstance(v, _JSONTypeBase):
                 new_dict[k] = v._to_map_value()
             else:
                 new_dict[k] = v
@@ -172,9 +177,19 @@ class _InnerDict(dict):
     pass
 
 
-class JSONObject(JSONTypeBase, object):
+class JSONObject(_JSONTypeBase, object):
+    __type_none_object = {}
+
+    @staticmethod
+    def NoneValue(class_type):
+        ct = JSONObject.__type_none_object.get(class_type)
+        if ct is None:
+            ct = _TypeValueNone(class_type)
+            JSONObject.__type_none_object[class_type] = ct
+        return ct
+
     def __init__(self):
-        JSONTypeBase.__init__(self)
+        _JSONTypeBase.__init__(self)
         object.__init__(self)
         self.__field_type = _InnerDict()
 
@@ -197,16 +212,23 @@ class JSONObject(JSONTypeBase, object):
             object.__setattr__(self, key, value)
             return
         try:
-            field_type = self.__field_type.get(key)
+            field_type = self._get_filed_type(key)
         except AttributeError:
             raise JSONObjectNotInitError()
-        is_json_type = isinstance(value, JSONTypeBase)
+        is_json_type = isinstance(value, _JSONTypeBase)
         if field_type is None:
-            if not is_json_type:
-                JSONTypeBase.__setattr__(self, key, value)
+            # 被赋值为None，保存字段类型
+            if isinstance(value, _TypeValueNone):
+                self._save_filed_type(key, value.tp)
+                object.__setattr__(self, key, None)
                 return
+            # 如果不是JSON**类型，则使用父类的赋值方法
+            if not is_json_type:
+                object.__setattr__(self, key, value)
+                return
+            # 保存JSON**字段的类型
             field_type = type(value)
-            self.__field_type[key] = field_type
+            self._save_filed_type(key, field_type)
         if value is None:
             self.__dict__[key] = None
         else:
@@ -214,6 +236,12 @@ class JSONObject(JSONTypeBase, object):
                 self.__dict__[key] = value
             else:
                 self.__dict__[key] = field_type(value)
+
+    def _save_filed_type(self, field, tp):
+        self.__field_type[field] = tp
+
+    def _get_filed_type(self, field):
+        return self.__field_type.get(field)
 
     def _to_map_value(self):
         value_dict = {}
@@ -251,4 +279,14 @@ class JSONObject(JSONTypeBase, object):
         return cls()._from_json(value_dict)
 
 
+JSONNoneInt = JSONObject.NoneValue(JSONInt)
+JSONNoneFloat = JSONObject.NoneValue(JSONFloat)
+JSONNoneComplex = JSONObject.NoneValue(JSONComplex)
+JSONNoneBool = JSONObject.NoneValue(JSONBool)
+JSONNoneString = JSONObject.NoneValue(JSONString)
+JSONNoneList = JSONObject.NoneValue(JSONList)
+JSONNoneSet = JSONObject.NoneValue(JSONSet)
+JSONNoneDict = JSONObject.NoneValue(JSONDict)
+if _IS_PYTHON_2:
+    JSONNoneLong = JSONObject.NoneValue(JSONLong)
 

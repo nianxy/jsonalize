@@ -136,3 +136,26 @@ class TestDataType:
         del(d['a'])
         assert len(d) == 1
 
+    def test_object(self):
+        class A(JSONObject):
+            def __init__(self):
+                JSONObject.__init__(self)
+                self.v = B()
+
+        class B(JSONObject):
+            def __init__(self):
+                JSONObject.__init__(self)
+                self.v = JSONInt()
+
+        # Test data types
+        assert isinstance(A(), JSONObject)
+
+        objb = B()
+        objb.v = 2
+
+        obja = A()
+        obja.v.v = 3
+
+        obja.v = objb
+        assert obja.v is objb
+

@@ -90,6 +90,51 @@ class TestJSON:
         if test.IS_PYTHON_2:
             assert json_obj.longv == obj.longv
 
+    def test_all_types_none_value(self):
+        class A(JSONObject):
+            def __init__(self):
+                JSONObject.__init__(self)
+                self.intv = JSONNoneInt
+                self.floatv = JSONNoneFloat
+                self.complexv = JSONNoneComplex
+                self.boolv = JSONNoneBool
+                self.strv = JSONNoneString
+                self.listv = JSONNoneList
+                self.setv = JSONNoneSet
+                self.dictv = JSONNoneDict
+                self.objv = JSONObject.NoneValue(B)
+
+        class B(JSONObject):
+            def __init__(self):
+                JSONObject.__init__(self)
+                self.v = JSONInt()
+
+        obj = A()
+        obj.intv = 100
+        obj.floatv = 10.0
+        obj.complexv = 1 + 2j
+        obj.boolv = True
+        obj.strv = "hello"
+        obj.listv = [1, 2]
+        obj.setv = set([1, 2])
+        obj.dictv = {'a': 1}
+        obj.objv = B()
+        if test.IS_PYTHON_2:
+            obj.longv = long(10)
+
+        assert isinstance(obj.intv, JSONInt)
+        assert isinstance(obj.floatv, JSONFloat)
+        assert isinstance(obj.complexv, JSONComplex)
+        # JSONBOOL is not an instance of bool, because bool is not inheritable
+        assert isinstance(obj.boolv, JSONBool)
+        assert isinstance(obj.strv, JSONString)
+        assert isinstance(obj.listv, JSONList)
+        assert isinstance(obj.setv, JSONSet)
+        assert isinstance(obj.dictv, JSONDict)
+        assert isinstance(obj.objv, B)
+        if test.IS_PYTHON_2:
+            assert isinstance(obj.longv, long)
+
     def test_field_mismatch(self):
         class A(JSONObject):
             def __init__(self):
