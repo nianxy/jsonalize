@@ -4,6 +4,7 @@ echo "with python: [$python_bin]"
 
 # package
 "$python_bin" setup.py clean --all
+rm -rf dist
 "$python_bin" setup.py sdist bdist_wheel
 if [ $? -ne 0 ] ; then
 	echo "Error: package failed!"

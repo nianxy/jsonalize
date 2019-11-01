@@ -17,6 +17,11 @@ class InvalidJSONClassError(Exception):
         return 'Invalid JSON object class'
 
 
+class JSONObjectNotInitError(Exception):
+    def __str__(self):
+        return 'JSONObject.__init__() should be invoked!'
+
+
 class JSONTypeBase:
     def __init__(self, *args, **kwargs):
         pass
@@ -191,7 +196,10 @@ class JSONObject(JSONTypeBase, object):
         if isinstance(value, _InnerDict):
             object.__setattr__(self, key, value)
             return
-        field_type = self.__field_type.get(key)
+        try:
+            field_type = self.__field_type.get(key)
+        except AttributeError:
+            raise JSONObjectNotInitError()
         is_json_type = isinstance(value, JSONTypeBase)
         if field_type is None:
             if not is_json_type:

@@ -1,15 +1,6 @@
 import test
-import math
+import pytest
 from jsonalize.jsonalize import *
-
-
-def compare_float(f1, f2, precision=0.0000001):
-    return math.fabs(f1-f2)<precision
-
-
-def compare_complex(c1, c2, precision=0.0000001):
-    return compare_float(c1.real, c2.real, precision) and\
-           compare_float(c1.imag, c2.imag, precision)
 
 
 class TestDataType:
@@ -27,6 +18,8 @@ class TestDataType:
         assert JSONInt(100) * 10 == 1000
         assert JSONInt(100) / 5 == 20
         assert JSONInt(100) - 5 == 95
+        with pytest.raises(ValueError):
+            a = JSONInt("a")
 
     if test.IS_PYTHON_2:
         def test_long(self):
@@ -49,12 +42,12 @@ class TestDataType:
         assert type(JSONFloat()) == JSONFloat
         assert type(JSONFloat(1.0)) == JSONFloat
 
-        assert compare_float(JSONFloat(), 0)
-        assert compare_float(JSONFloat(1.0), 1.0)
-        assert compare_float(JSONFloat(1.0)+10, 11.0)
-        assert compare_float(JSONFloat(100.0)-10, 90.0)
-        assert compare_float(JSONFloat(1.0)*10, 10.0)
-        assert compare_float(JSONFloat(1.0)/10, 0.1)
+        assert test.compare_float(JSONFloat(), 0)
+        assert test.compare_float(JSONFloat(1.0), 1.0)
+        assert test.compare_float(JSONFloat(1.0)+10, 11.0)
+        assert test.compare_float(JSONFloat(100.0)-10, 90.0)
+        assert test.compare_float(JSONFloat(1.0)*10, 10.0)
+        assert test.compare_float(JSONFloat(1.0)/10, 0.1)
 
     def test_complex(self):
         # Test data types
@@ -62,12 +55,12 @@ class TestDataType:
         assert type(JSONComplex(1.0)) == JSONComplex
         assert type(JSONComplex(1.0, 2.0)) == JSONComplex
 
-        assert compare_complex(JSONComplex(), 0+0j)
-        assert compare_complex(JSONComplex(1.0), 1+0j)
-        assert compare_complex(JSONComplex(1.0, 2.0), 1+2j)
-        assert compare_complex(JSONComplex(1.0, 2.0), 1+2j)
-        assert compare_complex(JSONComplex(1.0, -2.0), 1-2j)
-        assert compare_complex(JSONComplex(1.0, -2.0) + (2+3j), 3+1j)
+        assert test.compare_complex(JSONComplex(), 0+0j)
+        assert test.compare_complex(JSONComplex(1.0), 1+0j)
+        assert test.compare_complex(JSONComplex(1.0, 2.0), 1+2j)
+        assert test.compare_complex(JSONComplex(1.0, 2.0), 1+2j)
+        assert test.compare_complex(JSONComplex(1.0, -2.0), 1-2j)
+        assert test.compare_complex(JSONComplex(1.0, -2.0) + (2+3j), 3+1j)
 
     def test_string(self):
         # Test data types
