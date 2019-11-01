@@ -1,7 +1,5 @@
 import io
-import sys
 import setuptools
-from setuptools.command.test import test
 
 
 def read(*filenames, **kwargs):
@@ -15,19 +13,6 @@ def read(*filenames, **kwargs):
 
 
 long_description = read('README.md')
-
-
-class PyTest(test):
-    def finalize_options(self):
-        test.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
-
-    def run_tests(self):
-        import pytest
-        errcode = pytest.main(self.test_args)
-        sys.exit(errcode)
-
 
 setuptools.setup(
     name="jsonalize",
@@ -48,9 +33,5 @@ setuptools.setup(
     ],
     python_requires='>=2.7',
     platforms='any',
-    cmdclass={'test': PyTest},
-    extras_require={
-        'testing': ['pytest'],
-    }
 )
 

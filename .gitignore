@@ -2,6 +2,7 @@
 log/
 build/
 dist/
+.tox/
 *.egg-info/
 
 *.pyc

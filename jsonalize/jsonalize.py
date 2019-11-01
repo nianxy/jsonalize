@@ -167,9 +167,10 @@ class _InnerDict(dict):
     pass
 
 
-class JSONObject(JSONTypeBase):
+class JSONObject(JSONTypeBase, object):
     def __init__(self):
         JSONTypeBase.__init__(self)
+        object.__init__(self)
         self.__field_type = _InnerDict()
 
     def __setattr__(self, key, value):
@@ -188,7 +189,7 @@ class JSONObject(JSONTypeBase):
         :return: 无
         """
         if isinstance(value, _InnerDict):
-            JSONTypeBase.__setattr__(self, key, value)
+            object.__setattr__(self, key, value)
             return
         field_type = self.__field_type.get(key)
         is_json_type = isinstance(value, JSONTypeBase)
