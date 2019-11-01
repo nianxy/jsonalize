@@ -23,7 +23,7 @@ setuptools.setup(
     description="A JSON data binding library for Python",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=setuptools.find_packages(exclude=["test"]),
+    packages=setuptools.find_packages(exclude=["test","jsonalize.examples"]),
     include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 2.7",

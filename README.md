@@ -43,6 +43,40 @@ This example should output the following message:
 {"age": 28, "id": "20190101", "weight": 60.0, "name": "Stanley"}
 ```
 
+Another example shows how to prevent creating real objects for attributes when constructing a new JSONObject instance.
+
+```python
+class MyData(JSONObject):
+    def __init__(self):
+        JSONObject.__init__(self)
+        self.id = JSONNoneInt
+        self.name = JSONNoneString
+        self.attr = JSONObject.NoneValue(Attr)
+        
+
+class Attr(JSONObject):
+    def __init__(self):
+        JSONObject.__init__(self)
+        self.value = JSONString()
+        print("Attr object created")
+        
+        
+my = MyData()
+print(my.id is None, my.name is None, my.attr is None)
+
+my.id = 10
+my.name = "Stanley"
+my.attr = Attr()
+my.attr.value = "attr"
+print(my.to_json())
+
+# Outputs:
+# (True, True, True)
+# Attr object created
+# {"attr": {"value": "attr"}, "name": "Stanley", "id": 10}
+```
+
+
 ### Key points from this tutorial
 - A serializable class should inherit the `JSONObject` class
 - Don't forget to invoke the `__init__` method in your class
