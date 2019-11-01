@@ -16,7 +16,7 @@ long_description = read('README.md')
 
 setuptools.setup(
     name="jsonalize",
-    version="0.1",
+    version="0.2",
     url="https://github.com/nianxy/jsonalize",
     author="Stanley Nian",
     author_email="stanley.nian@yandex.com",
