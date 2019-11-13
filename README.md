@@ -2,6 +2,11 @@
 
 This library supports two-way data binding between JSON and Python class.
 
+# Install
+```bash
+npm install jsonalize
+```
+
 # Turorial
 
 Here is a simple example to use jsonalize:
